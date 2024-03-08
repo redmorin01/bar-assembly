@@ -27,10 +27,9 @@ func optimizeImage(this js.Value, p []js.Value) interface{} {
 		return err
 	}
 
-	resizedImg := resize.Resize(width, height, img, resize.Lanczos3)
 	var outputBuffer bytes.Buffer
 	if filter == "true" {
-		bouds := resizedImg.Bounds()
+		bouds := img.Bounds()
 		gray := image.NewGray(bouds)
 
 		for y := bouds.Min.Y; y < bouds.Max.Y; y++ {
@@ -41,17 +40,20 @@ func optimizeImage(this js.Value, p []js.Value) interface{} {
 			}
 		}
 
-		err = jpeg.Encode(&outputBuffer, gray, nil)
-		if err != nil {
-			return err
-		}
-	} else {
+		resizedImg := resize.Resize(width, height, gray, resize.Lanczos3)
 		err = jpeg.Encode(&outputBuffer, resizedImg, nil)
 		if err != nil {
 			return err
 		}
-	}
 
+	} else {
+		resizedImg := resize.Resize(width, height, img, resize.Lanczos3)
+		err = jpeg.Encode(&outputBuffer, resizedImg, nil)
+		if err != nil {
+			return err
+		}
+
+	}
 	jsOutput := js.Global().Get("Uint8Array").New(len(outputBuffer.Bytes()))
 	js.CopyBytesToJS(jsOutput, outputBuffer.Bytes())
 	fmt.Println("optimizeImage called")
