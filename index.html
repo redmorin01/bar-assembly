@@ -1,0 +1,58 @@
+<head>
+    <script src="wasm_exec.js"></script>
+    <script>
+        if(WebAssembly) {
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
+                .then(result => {
+                    go.run(result.instance);
+                });
+        } else {
+            alert("Your browser does not support WebAssembly");
+        
+        }
+    </script>
+    <script>
+        function fileChange(input, noColor = false) {
+            var photoInput = document.getElementById('photo');
+            if (photoInput.files.length > 0) {
+                const file = photoInput.files[0];
+                const height = parseInt(document.getElementById('longueur').value) || 800;
+                const width = parseInt(document.getElementById('largeur').value) || 800;
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file);
+                reader.onloadend = function() {
+                    const data = new Uint8Array(reader.result);
+                    const optimized = optimizeImage(data, width, height, noColor);
+                    const blob = new Blob([optimized], {type: "image/jpeg"});
+                    document.getElementById("img").src = URL.createObjectURL(blob);
+                };
+            }
+        }
+
+        function updateH1() {
+            updateDom()
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+
+    
+</head>
+<body>
+    <h1 id="titre">Optimisation d'image</h1>
+    <form id="myForm">
+        <label for="photo">Photo:</label>
+        <input type="file" id="photo" name="photo" accept="image/*" required>
+
+        <label for="longueur">Longueur:</label>
+        <input type="text" id="longueur" name="longueur" required>
+
+        <label for="largeur">Largeur:</label>
+        <input type="text" id="largeur" name="largeur" required>
+
+        <button type="button" onclick="fileChange(this)">Conversion</button>
+        <button type="button" onclick="fileChange(this, 'true')">Conversion sans couleur</button>
+    </form>
+
+    <img id="img">
+</body>
